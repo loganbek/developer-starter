@@ -88,14 +88,16 @@ When you run `pnpm dev`, two things happen:
 <script defer src="http://localhost:3000/{FILE_PATH}.js"></script>
 ```
 
+- Live Reloading is enabled by default, meaning that every time you save a change in your files, the website you're working on will reload automatically. You can disable it in `/bin/build.js`.
+
 ### Building multiple files
 
 If you need to build multiple files into different outputs, you can do it by updating the build settings.
 
-In `bind/build.js`, update the `entryPoints` with any files you'd like to build:
+In `bin/build.js`, update the `ENTRY_POINTS` array with any files you'd like to build:
 
 ```javascript
-const entryPoints = [
+const ENTRY_POINTS = [
   'src/home/index.ts',
   'src/contact/whatever.ts',
   'src/hooyah.ts',
@@ -104,6 +106,22 @@ const entryPoints = [
 ```
 
 This will tell `esbuild` to build all those files and output them in the `dist` folder for production and in `http://localhost:3000` for development.
+
+### Building CSS files
+
+CSS files are also supported by the bundler. When including a CSS file as an entry point, the compiler will generate a minified version in your output folder.
+
+You can define a CSS entry point by either:
+
+- Manually defining it in the `bin/build.js` config. [See previous section](#building-multiple-files) for reference.
+- Or importing the file inside any of your JavaScript / TypeScript files:
+
+```typescript
+// src/index.ts
+import './index.css';
+```
+
+CSS outputs are also available in `localhost` during [development mode](#serving-files-on-development-mode).
 
 ### Setting up a path alias
 
@@ -165,6 +183,7 @@ This template contains a set of predefined scripts in the `package.json` file:
 - `pnpm dev`: Builds and creates a local server that serves all files (check [Serving files on development mode](#serving-files-on-development-mode) for more info).
 - `pnpm build`: Builds to the production directory (`dist`).
 - `pnpm lint`: Scans the codebase with ESLint and Prettier to see if there are any errors.
+- `pnpm lint:fix`: Fixes all auto-fixable issues in ESLint.
 - `pnpm check`: Checks for TypeScript errors in the codebase.
 - `pnpm format`: Formats all the files in the codebase using Prettier. You probably won't need this script if you have automatic [formatting on save](https://www.digitalocean.com/community/tutorials/code-formatting-with-prettier-in-visual-studio-code#automatically-format-on-save) active in your editor.
 - `pnpm test`: Will run all the tests that are located in the `/tests` folder.
@@ -191,6 +210,8 @@ If any of these jobs fail, you will get a warning in your Pull Request and shoul
 
 [Changesets](https://github.com/changesets/changesets) allows us to generate automatic changelog updates when merging a Pull Request to the `master` branch.
 
+Before starting, make sure to [enable full compatibility with Changesets in the repository](#how-to-enable-continuous-deployment-with-changesets).
+
 To generate a new changelog, run:
 
 ```bash
@@ -203,7 +224,18 @@ Once the Pull Request is merged into `master`, a new Pull Request will automatic
 You'll have to manually merge this new PR to complete the workflow.
 
 If an `NPM_TOKEN` secret is included in the repository secrets, Changesets will automatically deploy the new package version to npm.
-Keep reading for more info about this.
+See [how to automatically deploy updates to npm](#how-to-automatically-deploy-updates-to-npm) for more info.
+
+#### How to enable Continuous Deployment with Changesets
+
+Some repositories may not have the required permissions to let Changesets interact with the repository.
+
+To enable full compatibility with Changesets, go to the repository settings (`Settings > Actions > General > Workflow Permissions`) and define:
+
+- ✅ Read and write permissions.
+- ✅ Allow GitHub Actions to create and approve pull requests.
+
+Enabling this setting for your organization account (`Account Settings > Actions > General`) could help streamline the process. By doing so, any new repos created under the org will automatically inherit the setting, which can save your teammates time and effort. This can only be applied to organization accounts at the time.
 
 #### How to automatically deploy updates to npm
 
